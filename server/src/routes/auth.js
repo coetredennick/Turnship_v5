@@ -15,8 +15,19 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.
 
 router.get('/google', (req, res) => {
   if (!oauth2Client) {
+    console.error('Google OAuth not configured. Missing environment variables:', {
+      clientId: !!process.env.GOOGLE_CLIENT_ID,
+      clientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+      redirectUri: !!process.env.GOOGLE_REDIRECT_URI
+    });
     return res.status(500).json({ error: 'Google OAuth not configured' });
   }
+  
+  // Set redirect URI for this flow
+  oauth2Client.redirectUri = process.env.GOOGLE_REDIRECT_URI || 
+    `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/auth/google/callback`;
+  
+  console.log('Generating OAuth URL with redirect URI:', oauth2Client.redirectUri);
   
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
@@ -35,6 +46,10 @@ router.get('/google/callback', async (req, res) => {
     if (!code) {
       return res.status(400).send('Authorization code missing');
     }
+
+    // Set the redirect URI for token exchange (needed for Replit)
+    oauth2Client.redirectUri = process.env.GOOGLE_REDIRECT_URI || 
+      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/auth/google/callback`;
 
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);

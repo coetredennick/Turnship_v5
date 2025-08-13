@@ -10,7 +10,7 @@ export function AuthPage() {
   const handleGoogleAuth = () => {
     setIsLoading(true);
     // Redirect to backend OAuth endpoint
-    window.location.href = '/auth/google';
+    window.location.href = '/api/auth/google';
   };
 
   const handleDevLogin = async () => {
