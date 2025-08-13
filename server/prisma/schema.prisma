@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Explicit outreach state machine
+// This enum represents the authoritative state of each connection
+enum OutreachState {
+  NOT_CONTACTED     // Never drafted/sent in this cycle
+  DRAFTING          // A draft exists or is being composed
+  SENT              // Email sent (brief transitional state)
+  AWAITING_REPLY    // Email sent, within reply window
+  REPLIED           // Reply received in this cycle
+  BOUNCED           // Delivery failure
+  DO_NOT_CONTACT    // Unsubscribed / user marked DNC
+  CLOSED            // Done for good (hired, not a fit, etc.)
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  profile   Profile?
+  tokens    OAuthToken[]
+  documents Document[]
+  connections Connection[]
+  drafts    Draft[]
+  emails    EmailSent[]
+  timeline  TimelineEvent[]
+  followups Followup[]
+  recommendations Recommendation[]
+}
+
+model OAuthToken {
+  userId      String
+  provider    String
+  accessToken String
+  refreshToken String?
+  scope       String?
+  expiresAt   DateTime?
+  encrypted   Boolean  @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, provider])
+}
+
+model Profile {
+  userId    String @id
+  school    String?
+  gradYear  Int?
+  major     String?
+  interests String[]
+  targets   String[]
+  location  String?
+  tone      String  @default("Warm")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  userId       String
+  kind         String   // resume, cover_letter, other
+  filename     String
+  url          String
+  extractedTxt String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+}
+
+model Connection {
+  id              String   @id @default(uuid())
+  userId          String
+  email           String?
+  fullName        String?
+  company         String?
+  role            String?
+  location        String?
+  tags            String[]
+  notes           String?
+  alumni          Boolean  @default(false)
+  school          String?
+  gradYear        Int?
+  // Legacy fields (deprecated - kept for backward compatibility)
+  stage           String   @default("Not Contacted")  // Will be removed after migration
+  stageStatus     String   @default("ready")          // Will be removed after migration
+  currentDraftId  String?
+
+  // Authoritative state machine fields
+  cycle           Int      @default(1)                // Which outreach pass (1, 2, or 3)
+  state           OutreachState @default(NOT_CONTACTED) // Current state in the cycle
+  nextAction      String   @default("PREPARE_FIRST")  // UI hint for primary action
+  nextActionAt    DateTime?                            // When next action is due
+  
+  // Operational metadata
+  gmailThreadId   String?                              // Gmail thread for tracking replies
+  followupCount   Int      @default(0)                // Number of follow-ups sent
+  closedReason    String?                              // Reason when CLOSED or DO_NOT_CONTACT
+  
+  // Timing fields
+  lastContactedAt DateTime?                            // Last email sent
+  lastReplyAt     DateTime?                            // Last reply received
+  replySentiment  String?                              // positive | neutral | negative
+  
+  // System fields
+  version         Int      @default(0)                // Optimistic concurrency control
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  drafts Draft[]
+  emails EmailSent[]
+  timeline TimelineEvent[]
+  followups Followup[]
+
+  @@unique([userId, email])
+  @@index([userId, state, cycle])      // For filtering by state
+  @@index([userId, nextActionAt])      // For finding due actions
+  @@index([userId, lastContactedAt])   // For follow-up queries
+}
+
+model Draft {
+  id           String   @id @default(uuid())
+  userId       String
+  connectionId String
+  subject      String?
+  body         String?
+  meta         Json?
+  status       String   @default("draft") // draft, sent
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  connection Connection @relation(fields:[connectionId], references:[id], onDelete: Cascade)
+}
+
+model EmailSent {
+  id              String   @id @default(uuid())
+  userId          String
+  connectionId    String
+  gmailMessageId  String?
+  subject         String?
+  body            String?
+  sentAt          DateTime @default(now())
+  idempotencyKey  String?  // Client-provided idempotency key for duplicate prevention
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  connection Connection @relation(fields:[connectionId], references:[id], onDelete: Cascade)
+
+  @@unique([userId, idempotencyKey]) // Prevent duplicate sends per user
+}
+
+model TimelineEvent {
+  id           String   @id @default(uuid())
+  userId       String
+  connectionId String
+  kind         String
+  title        String?
+  details      Json?
+  at           DateTime @default(now())
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  connection Connection @relation(fields:[connectionId], references:[id], onDelete: Cascade)
+}
+
+model Followup {
+  id           String   @id @default(uuid())
+  userId       String
+  connectionId String
+  dueAt        DateTime
+  status       String   @default("scheduled") // scheduled, done, skipped
+  rule         String?
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  connection Connection @relation(fields:[connectionId], references:[id], onDelete: Cascade)
+}
+
+model Alumni {
+  id        String   @id @default(uuid())
+  fullName  String?
+  email     String?
+  company   String?
+  role      String?
+  school    String?
+  program   String?
+  gradYear  Int?
+  location  String?
+  source    String?
+  notes     String?
+}
+
+model Recommendation {
+  id        String   @id @default(uuid())
+  userId    String
+  alumniId  String
+  score     Float?
+  reasons   Json?
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model IdempotencyKey {
+  id            String   @id @default(uuid())
+  key           String   @unique // Client-provided idempotency key
+  userId        String   // User who made the request
+  endpoint      String   // API endpoint called
+  requestHash   String   // Hash of request body for verification
+  responseData  Json?    // Cached response data
+  statusCode    Int      // HTTP status code of original response
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime // TTL for cleanup (24 hours recommended)
+
+  @@index([key, userId])
+  @@index([expiresAt]) // For cleanup job
+}

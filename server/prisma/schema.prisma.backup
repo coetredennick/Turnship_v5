@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Explicit outreach state machine
+enum OutreachState {
+  NOT_CONTACTED
+  DRAFTING
+  SENT
+  AWAITING_REPLY
+  REPLIED
+  CLOSED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  profile   Profile?
+  tokens    OAuthToken[]
+  documents Document[]
+  connections Connection[]
+  drafts    Draft[]
+  emails    EmailSent[]
+  timeline  TimelineEvent[]
+  followups Followup[]
+  recommendations Recommendation[]
+}
+
+model OAuthToken {
+  userId      String
+  provider    String
+  accessToken String
+  refreshToken String?
+  scope       String?
+  expiresAt   DateTime?
+  encrypted   Boolean  @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, provider])
+}
+
+model Profile {
+  userId    String @id
+  school    String?
+  gradYear  Int?
+  major     String?
+  interests String[]
+  targets   String[]
+  location  String?
+  tone      String  @default("Warm")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  userId       String
+  kind         String   // resume, cover_letter, other
+  filename     String
+  url          String
+  extractedTxt String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+}
+
+model Connection {
+  id              String   @id @default(uuid())
+  userId          String
+  email           String?
+  fullName        String?
+  company         String?
+  role            String?
+  location        String?
+  tags            String[]
+  notes           String?
+  alumni          Boolean  @default(false)
+  school          String?
+  gradYear        Int?
+  // Free-text stage (legacy) unified default
+  stage           String   @default("Not Contacted")
+  stageStatus     String   @default("ready")
+  currentDraftId  String?
+
+  // Outreach state machine (authoritative)
+  cycle           Int      @default(1)
+  state           OutreachState @default(NOT_CONTACTED)
+  nextAction      String   @default("PREPARE_FIRST")
+  nextActionAt    DateTime?
+  gmailThreadId   String?
+
+  lastContactedAt DateTime?
+  lastReplyAt     DateTime?
+  replySentiment  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  drafts Draft[]
+  emails EmailSent[]
+  timeline TimelineEvent[]
+  followups Followup[]
+
+  @@unique([userId, email])
+}
+
+model Draft {
+  id           String   @id @default(uuid())
+  userId       String
+  connectionId String
+  subject      String?
+  body         String?
+  meta         Json?
+  status       String   @default("draft") // draft, sent
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  connection Connection @relation(fields:[connectionId], references:[id], onDelete: Cascade)
+}
+
+model EmailSent {
+  id              String   @id @default(uuid())
+  userId          String
+  connectionId    String
+  gmailMessageId  String?
+  subject         String?
+  body            String?
+  sentAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  connection Connection @relation(fields:[connectionId], references:[id], onDelete: Cascade)
+}
+
+model TimelineEvent {
+  id           String   @id @default(uuid())
+  userId       String
+  connectionId String
+  kind         String
+  title        String?
+  details      Json?
+  at           DateTime @default(now())
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  connection Connection @relation(fields:[connectionId], references:[id], onDelete: Cascade)
+}
+
+model Followup {
+  id           String   @id @default(uuid())
+  userId       String
+  connectionId String
+  dueAt        DateTime
+  status       String   @default("scheduled") // scheduled, done, skipped
+  rule         String?
+
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  connection Connection @relation(fields:[connectionId], references:[id], onDelete: Cascade)
+}
+
+model Alumni {
+  id        String   @id @default(uuid())
+  fullName  String?
+  email     String?
+  company   String?
+  role      String?
+  school    String?
+  program   String?
+  gradYear  Int?
+  location  String?
+  source    String?
+  notes     String?
+}
+
+model Recommendation {
+  id        String   @id @default(uuid())
+  userId    String
+  alumniId  String
+  score     Float?
+  reasons   Json?
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

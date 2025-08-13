@@ -1,0 +1,481 @@
+// Mock database for development - simulates real data without needing a database
+
+const mockUsers = [
+  {
+    id: 'dev-user-1',
+    email: 'dev@example.com',
+    name: 'Dev User',
+    createdAt: new Date('2024-01-01')
+  }
+];
+
+const mockProfiles = [
+  {
+    userId: 'dev-user-1',
+    school: 'Stanford University',
+    gradYear: 2024,
+    major: 'Computer Science',
+    interests: ['Software Engineering', 'AI/ML', 'Product Management'],
+    targets: ['Tech Companies', 'Startups'],
+    location: 'San Francisco, CA',
+    tone: 'Warm'
+  }
+];
+
+const mockConnections = [
+  {
+    id: 'conn-1',
+    user_id: 'dev-user-1',
+    email: 'sarah.chen@microsoft.com',
+    full_name: 'Sarah Chen',
+    company: 'Microsoft',
+    role: 'Senior Product Manager',
+    location: 'Seattle, WA',
+    tags: ['Alumni', 'Product Management', 'Stanford'],
+    notes: 'Met at Stanford alumni event. Very helpful with PM advice.',
+    alumni: true,
+    school: 'Stanford University',
+    grad_year: 2019,
+    stage: 'First Outreach',
+    last_contacted_at: new Date('2024-01-20T10:30:00Z'),
+    created_at: new Date('2024-01-15')
+  },
+  {
+    id: 'conn-2',
+    userId: 'dev-user-1',
+    email: 'david.kim@google.com',
+    fullName: 'David Kim',
+    company: 'Google',
+    role: 'Staff Data Scientist',
+    location: 'Mountain View, CA',
+    tags: ['Data Science', 'ML'],
+    notes: 'Leading ML initiatives at Google. Interested in discussing career paths.',
+    alumni: false,
+    school: null,
+    gradYear: null,
+    stage: 'Awaiting Reply',
+    lastContactedAt: new Date('2024-01-18T14:15:00Z'),
+    createdAt: new Date('2024-01-10')
+  },
+  {
+    id: 'conn-3',
+    userId: 'dev-user-1',
+    email: 'alex.rodriguez@tesla.com',
+    fullName: 'Alex Rodriguez',
+    company: 'Tesla',
+    role: 'Engineering Manager',
+    location: 'Austin, TX',
+    tags: ['Engineering', 'Electric Vehicles'],
+    notes: 'Managing autonomous driving software team.',
+    alumni: false,
+    school: null,
+    gradYear: null,
+    stage: 'Follow-up Due',
+    lastContactedAt: new Date('2024-01-16T09:45:00Z'),
+    createdAt: new Date('2024-01-08')
+  },
+  {
+    id: 'conn-4',
+    userId: 'dev-user-1',
+    email: 'jennifer.wu@stripe.com',
+    fullName: 'Jennifer Wu',
+    company: 'Stripe',
+    role: 'Senior Software Engineer',
+    location: 'San Francisco, CA',
+    tags: ['Engineering', 'Fintech'],
+    notes: 'Working on payment infrastructure. Stanford CS alum.',
+    alumni: true,
+    school: 'Stanford University',
+    gradYear: 2020,
+    stage: 'Connected',
+    lastContactedAt: new Date('2024-01-22T16:20:00Z'),
+    createdAt: new Date('2024-01-12')
+  },
+  {
+    id: 'conn-5',
+    userId: 'dev-user-1',
+    email: 'michael.chang@openai.com',
+    fullName: 'Michael Chang',
+    company: 'OpenAI',
+    role: 'Research Scientist',
+    location: 'San Francisco, CA',
+    tags: ['AI/ML', 'Research'],
+    notes: 'PhD in AI from Stanford. Working on GPT models.',
+    alumni: true,
+    school: 'Stanford University',
+    gradYear: 2021,
+    stage: 'Prospected',
+    lastContactedAt: null,
+    createdAt: new Date('2024-01-25')
+  },
+  {
+    id: 'conn-6',
+    userId: 'dev-user-1',
+    email: 'priya.patel@netflix.com',
+    fullName: 'Priya Patel',
+    company: 'Netflix',
+    role: 'Senior Data Engineer',
+    location: 'Los Gatos, CA',
+    tags: ['Data Engineering', 'Streaming'],
+    notes: 'Building data pipelines for recommendation systems.',
+    alumni: true,
+    school: 'Stanford University',
+    gradYear: 2018,
+    stage: 'Connected',
+    lastContactedAt: new Date('2024-01-24T11:15:00Z'),
+    createdAt: new Date('2024-01-05')
+  },
+  {
+    id: 'conn-7',
+    userId: 'dev-user-1',
+    email: 'james.wilson@uber.com',
+    fullName: 'James Wilson',
+    company: 'Uber',
+    role: 'Staff Software Engineer',
+    location: 'San Francisco, CA',
+    tags: ['Backend', 'Scalability'],
+    notes: 'Leading backend architecture for ride-sharing platform.',
+    alumni: false,
+    school: null,
+    gradYear: null,
+    stage: 'First Outreach',
+    lastContactedAt: new Date('2024-01-23T16:30:00Z'),
+    createdAt: new Date('2024-01-20')
+  },
+  {
+    id: 'conn-8',
+    userId: 'dev-user-1',
+    email: 'lisa.garcia@airbnb.com',
+    fullName: 'Lisa Garcia',
+    company: 'Airbnb',
+    role: 'Product Marketing Manager',
+    location: 'San Francisco, CA',
+    tags: ['Marketing', 'Growth'],
+    notes: 'Stanford MBA. Working on host acquisition strategies.',
+    alumni: true,
+    school: 'Stanford University',
+    gradYear: 2020,
+    stage: 'Awaiting Reply',
+    lastContactedAt: new Date('2024-01-21T14:45:00Z'),
+    createdAt: new Date('2024-01-18')
+  },
+  {
+    id: 'conn-9',
+    userId: 'dev-user-1',
+    email: 'robert.thompson@salesforce.com',
+    fullName: 'Robert Thompson',
+    company: 'Salesforce',
+    role: 'Principal Engineer',
+    location: 'San Francisco, CA',
+    tags: ['Cloud', 'Enterprise'],
+    notes: 'Cloud infrastructure and enterprise software specialist.',
+    alumni: false,
+    school: null,
+    gradYear: null,
+    stage: 'Follow-up Due',
+    lastContactedAt: new Date('2024-01-19T10:20:00Z'),
+    createdAt: new Date('2024-01-14')
+  },
+  {
+    id: 'conn-10',
+    userId: 'dev-user-1',
+    email: 'amanda.lee@meta.com',
+    fullName: 'Amanda Lee',
+    company: 'Meta',
+    role: 'UX Research Manager',
+    location: 'Menlo Park, CA',
+    tags: ['UX Research', 'Design'],
+    notes: 'Leading user research for AR/VR products at Meta.',
+    alumni: true,
+    school: 'Stanford University',
+    gradYear: 2017,
+    stage: 'Connected',
+    lastContactedAt: new Date('2024-01-26T09:30:00Z'),
+    createdAt: new Date('2024-01-11')
+  }
+];
+
+const mockAlumni = [
+  {
+    id: 'alumni-1',
+    fullName: 'Sarah Chen',
+    email: 'sarah.chen@microsoft.com',
+    company: 'Microsoft',
+    role: 'Senior Product Manager',
+    school: 'Stanford University',
+    program: 'Computer Science',
+    gradYear: 2019,
+    location: 'Seattle, WA',
+    source: 'LinkedIn',
+    notes: 'Product lead for Office 365'
+  },
+  {
+    id: 'alumni-2',
+    fullName: 'Jennifer Wu',
+    email: 'jennifer.wu@stripe.com',
+    company: 'Stripe',
+    role: 'Senior Software Engineer',
+    school: 'Stanford University',
+    program: 'Computer Science',
+    gradYear: 2020,
+    location: 'San Francisco, CA',
+    source: 'Alumni Directory',
+    notes: 'Backend infrastructure specialist'
+  },
+  {
+    id: 'alumni-3',
+    fullName: 'Michael Chang',
+    email: 'michael.chang@openai.com',
+    company: 'OpenAI',
+    role: 'Research Scientist',
+    school: 'Stanford University',
+    program: 'Computer Science PhD',
+    gradYear: 2021,
+    location: 'San Francisco, CA',
+    source: 'Research Papers',
+    notes: 'AI safety and alignment researcher'
+  }
+];
+
+const mockEmailSent = [
+  {
+    id: 'email-1',
+    userId: 'dev-user-1',
+    connectionId: 'conn-1',
+    gmailMessageId: 'gmail-123',
+    subject: 'Stanford student interested in your product management journey',
+    body: 'Hi Sarah, I hope this email finds you well! I\'m a Stanford CS student...',
+    sentAt: new Date('2024-01-20T10:30:00Z')
+  },
+  {
+    id: 'email-2',
+    userId: 'dev-user-1',
+    connectionId: 'conn-2',
+    gmailMessageId: 'gmail-124',
+    subject: 'Fellow tech enthusiast seeking data science guidance',
+    body: 'Hi David, I came across your profile and was impressed by your work...',
+    sentAt: new Date('2024-01-18T14:15:00Z')
+  }
+];
+
+const mockTimelineEvents = [
+  {
+    id: 'timeline-1',
+    userId: 'dev-user-1',
+    connectionId: 'conn-1',
+    kind: 'email_sent',
+    title: 'Initial outreach email sent',
+    details: { subject: 'Stanford student interested in your product management journey' },
+    at: new Date('2024-01-20T10:30:00Z')
+  },
+  {
+    id: 'timeline-2',
+    userId: 'dev-user-1',
+    connectionId: 'conn-4',
+    kind: 'connection_added',
+    title: 'Added new connection',
+    details: { source: 'LinkedIn' },
+    at: new Date('2024-01-12T09:00:00Z')
+  }
+];
+
+const mockFollowups = [
+  {
+    id: 'followup-1',
+    userId: 'dev-user-1',
+    connectionId: 'conn-3',
+    dueAt: new Date('2024-01-26T10:00:00Z'),
+    status: 'scheduled',
+    rule: 'follow_up_7_days'
+  },
+  {
+    id: 'followup-2',
+    userId: 'dev-user-1',
+    connectionId: 'conn-2',
+    dueAt: new Date('2024-01-28T15:00:00Z'),
+    status: 'scheduled',
+    rule: 'follow_up_10_days'
+  }
+];
+
+// Mock Prisma-like API
+const mockPrisma = {
+  user: {
+    findUnique: ({ where }) => {
+      return mockUsers.find(u => u.id === where.id || u.email === where.email) || null;
+    },
+    create: (data) => {
+      const user = { ...data.data, id: `user-${Date.now()}`, createdAt: new Date() };
+      mockUsers.push(user);
+      return user;
+    }
+  },
+  
+  profile: {
+    findUnique: ({ where }) => {
+      return mockProfiles.find(p => p.userId === where.userId) || null;
+    },
+    create: (data) => {
+      const profile = { ...data.data };
+      mockProfiles.push(profile);
+      return profile;
+    },
+    update: ({ where, data }) => {
+      const index = mockProfiles.findIndex(p => p.userId === where.userId);
+      if (index !== -1) {
+        mockProfiles[index] = { ...mockProfiles[index], ...data };
+        return mockProfiles[index];
+      }
+      return null;
+    }
+  },
+
+  connection: {
+    findMany: ({ where, orderBy }) => {
+      let connections = mockConnections.filter(c => c.userId === where?.userId);
+      if (orderBy?.createdAt === 'desc') {
+        connections.sort((a, b) => b.createdAt - a.createdAt);
+      }
+      return connections;
+    },
+    findUnique: ({ where }) => {
+      return mockConnections.find(c => c.id === where.id) || null;
+    },
+    create: ({ data }) => {
+      const connection = { 
+        ...data, 
+        id: `conn-${Date.now()}`, 
+        createdAt: new Date(),
+        tags: data.tags || [],
+        alumni: data.alumni || false
+      };
+      mockConnections.push(connection);
+      return connection;
+    },
+    update: ({ where, data }) => {
+      const index = mockConnections.findIndex(c => c.id === where.id);
+      if (index !== -1) {
+        mockConnections[index] = { ...mockConnections[index], ...data };
+        return mockConnections[index];
+      }
+      return null;
+    },
+    delete: ({ where }) => {
+      const index = mockConnections.findIndex(c => c.id === where.id);
+      if (index !== -1) {
+        return mockConnections.splice(index, 1)[0];
+      }
+      return null;
+    },
+    groupBy: ({ by, where, _count }) => {
+      const connections = mockConnections.filter(c => c.userId === where?.userId);
+      const grouped = {};
+      connections.forEach(c => {
+        const key = c[by[0]];
+        if (!grouped[key]) grouped[key] = 0;
+        grouped[key]++;
+      });
+      return Object.entries(grouped).map(([stage, count]) => ({
+        stage,
+        _count: { stage: count }
+      }));
+    }
+  },
+
+  alumni: {
+    findMany: ({ where, orderBy, take, skip }) => {
+      let alumni = [...mockAlumni];
+      
+      if (where?.fullName?.contains) {
+        const search = where.fullName.contains.toLowerCase();
+        alumni = alumni.filter(a => 
+          a.fullName?.toLowerCase().includes(search) ||
+          a.company?.toLowerCase().includes(search) ||
+          a.role?.toLowerCase().includes(search)
+        );
+      }
+      
+      if (orderBy?.createdAt === 'desc') {
+        alumni.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      }
+      
+      if (skip) alumni = alumni.slice(skip);
+      if (take) alumni = alumni.slice(0, take);
+      
+      return alumni;
+    },
+    count: ({ where }) => {
+      let alumni = mockAlumni;
+      if (where?.fullName?.contains) {
+        const search = where.fullName.contains.toLowerCase();
+        alumni = alumni.filter(a => 
+          a.fullName?.toLowerCase().includes(search) ||
+          a.company?.toLowerCase().includes(search) ||
+          a.role?.toLowerCase().includes(search)
+        );
+      }
+      return alumni.length;
+    }
+  },
+
+  emailSent: {
+    count: ({ where }) => {
+      let emails = mockEmailSent.filter(e => e.userId === where?.userId);
+      if (where?.sentAt?.gte) {
+        emails = emails.filter(e => e.sentAt >= where.sentAt.gte);
+      }
+      return emails.length;
+    },
+    create: ({ data }) => {
+      const email = { 
+        ...data, 
+        id: `email-${Date.now()}`, 
+        sentAt: new Date() 
+      };
+      mockEmailSent.push(email);
+      return email;
+    }
+  },
+
+  timelineEvent: {
+    findMany: ({ where, orderBy, take }) => {
+      let events = mockTimelineEvents.filter(e => e.userId === where?.userId);
+      if (where?.connectionId) {
+        events = events.filter(e => e.connectionId === where.connectionId);
+      }
+      if (orderBy?.at === 'desc') {
+        events.sort((a, b) => b.at - a.at);
+      }
+      if (take) events = events.slice(0, take);
+      return events;
+    },
+    create: ({ data }) => {
+      const event = { 
+        ...data, 
+        id: `timeline-${Date.now()}`, 
+        at: new Date() 
+      };
+      mockTimelineEvents.push(event);
+      return event;
+    }
+  },
+
+  followup: {
+    findMany: ({ where, orderBy }) => {
+      let followups = mockFollowups.filter(f => f.userId === where?.userId);
+      if (where?.status) {
+        followups = followups.filter(f => f.status === where.status);
+      }
+      if (orderBy?.dueAt === 'asc') {
+        followups.sort((a, b) => a.dueAt - b.dueAt);
+      }
+      return followups;
+    }
+  },
+
+  // Mock query methods
+  $queryRaw: () => Promise.resolve([{ result: 1 }]),
+  $disconnect: () => Promise.resolve()
+};
+
+module.exports = { mockPrisma };

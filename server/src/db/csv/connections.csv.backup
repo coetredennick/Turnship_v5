@@ -1,0 +1,11 @@
+id,user_id,email,full_name,company,role,location,tags,notes,alumni,school,grad_year,stage,stage_status,current_draft_id,last_contacted_at,last_reply_at,reply_sentiment,created_at
+null,null,null,null,null,null,null,null,null,null,null,null,null,completed,null,null,"2025-08-11T16:28:58.122Z",positive,null
+null,null,null,null,null,null,null,null,null,null,null,null,null,draft_saved,id_kf9jpxd8zme7gaxda,null,null,null,null
+null,null,null,null,null,null,null,null,null,null,null,null,null,draft_saved,id_cegkb5jxgme7gb1hd,null,null,null,null
+null,null,null,null,null,null,null,null,null,null,null,null,null,draft_saved,id_7xlhsycknme7gzj0z,null,null,null,null
+null,null,null,null,null,null,null,null,null,null,null,null,null,draft_saved,id_wfvgpx5o5me7ht0ln,null,null,null,null
+null,null,null,null,null,null,null,null,null,null,null,null,null,draft_saved,id_cvat7ohppme7hyub2,null,null,null,null
+null,null,null,null,null,null,null,null,null,null,null,null,null,draft_saved,id_njbmy90fmme7hzgpo,null,null,null,null
+null,null,null,null,null,null,null,null,null,null,null,null,null,draft_saved,id_x0jg1klvqme7i2f4d,null,null,null,null
+conn_9,dev-user-1,james.wilson@salesforce.com,James Wilson,Salesforce,Solution Architect,"San Francisco, CA","[Enterprise, CRM]",CRM integration and automation specialist,false,,null,Not Started,ready,null,null,null,null,"2024-08-07T16:00:00.000Z"
+conn_10,dev-user-1,maria.gonzalez@meta.com,Maria Gonzalez,Meta,Data Science Manager,"Menlo Park, CA","[Data, Social]",Social media analytics and insights expert,true,Stanford University,2020,Not Started,ready,null,null,null,null,"2024-08-03T13:10:00.000Z"
