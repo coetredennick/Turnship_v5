@@ -13,7 +13,7 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or Postman)
     if (!origin) return callback(null, true);
-    
+
     // In production on Replit, allow the Replit domain
     if (process.env.REPL_OWNER && process.env.REPL_SLUG) {
       const allowedOrigins = [
@@ -37,13 +37,14 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'dev-secret-not-secure',
+  secret: process.env.SESSION_SECRET || 'dev-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production'
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+    httpOnly: true, 
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax' // Allow cross-site requests for OAuth
   }
 }));
 
@@ -104,7 +105,7 @@ app.get('*', (req, res) => {
   if (req.path.startsWith('/api/') || req.path.startsWith('/auth/')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
-  
+
   res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 

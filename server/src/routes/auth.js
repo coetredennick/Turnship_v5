@@ -84,6 +84,8 @@ router.get('/google/callback', async (req, res) => {
     });
 
     setUserSession(req, user);
+    console.log('✅ User session set:', req.session.user);
+    console.log('🔄 Redirecting to:', (process.env.CLIENT_URL || 'http://localhost:5173') + '/?auth_success=true');
     res.redirect((process.env.CLIENT_URL || 'http://localhost:5173') + '/?auth_success=true');
     
   } catch (error) {
@@ -93,6 +95,7 @@ router.get('/google/callback', async (req, res) => {
 });
 
 router.get('/user', async (req, res) => {
+  console.log('🔍 Checking user session:', req.session?.user ? 'exists' : 'missing');
   if (!req.session?.user) return res.status(200).json({ user: null });
   const profile = await prisma.profile.findUnique({ where: { userId: req.session.user.id } });
   res.json({ user: req.session.user, profile });
