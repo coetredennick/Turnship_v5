@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+// Use the environment variable if set, otherwise use relative URL for proxy
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 interface User {
   id: string;
@@ -20,7 +21,7 @@ export function useAuth() {
   useEffect(() => {
     const fetchAuth = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/user`, {
+        const response = await fetch(`${API_BASE}/user`, {
           credentials: 'include'
         });
         

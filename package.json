@@ -1,6 +1,22 @@
 {
+  "name": "turnship",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "dev": "node scripts/start-dev.js",
+    "start": "node scripts/start-prod.js",
+    "setup": "node scripts/setup-replit.js",
+    "prisma:generate": "cd server && npx prisma generate",
+    "prisma:migrate": "cd server && npx prisma migrate deploy",
+    "prisma:push": "cd server && npx prisma db push",
+    "init:dev-user": "node server/scripts/init-dev-user.js"
+  },
   "dependencies": {
     "axios": "^1.11.0",
-    "colors": "^1.4.0"
+    "colors": "^1.4.0",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2"
   }
 }

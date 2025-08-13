@@ -12,15 +12,30 @@ export default defineConfig({
   },
   server: { 
     port: 5173,
+    host: '0.0.0.0',
+    allowedHosts: [
+      'localhost',
+      '.replit.dev',
+      '.repl.co',
+      '.replit.app',
+      '.repl.it'
+    ],
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false
       },
-      '/auth': {
+      '/auth/google': {
         target: 'http://localhost:3001',
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false
       }
     }
+  },
+  // Enable SPA routing - fallback to index.html for client-side routes
+  preview: {
+    port: 5173,
+    host: '0.0.0.0'
   }
 })

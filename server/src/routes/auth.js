@@ -1,16 +1,23 @@
 const router = require('express').Router();
-const { google } = require('googleapis');
 const { prisma } = require('../db/prisma');
 const { setUserSession } = require('../middleware/auth');
 
-
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI
-);
+// Only initialize Google OAuth if credentials are available
+let oauth2Client = null;
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REDIRECT_URI) {
+  const { google } = require('googleapis');
+  oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI
+  );
+}
 
 router.get('/google', (req, res) => {
+  if (!oauth2Client) {
+    return res.status(500).json({ error: 'Google OAuth not configured' });
+  }
+  
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/gmail.send']
@@ -19,43 +26,58 @@ router.get('/google', (req, res) => {
 });
 
 router.get('/google/callback', async (req, res) => {
-  const { code } = req.query;
-  const { tokens } = await oauth2Client.getToken(code);
-  oauth2Client.setCredentials(tokens);
-
-  const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
-  const { data } = await oauth2.userinfo.get();
-  const email = data.email;
-  const name = data.name || email;
-
-  const user = await prisma.user.upsert({
-    where: { email },
-    update: { name },
-    create: { email, name }
-  });
-
-  await prisma.oAuthToken.upsert({
-    where: { userId_provider: { userId: user.id, provider: 'google' } },
-    update: {
-      accessToken: tokens.access_token || '',
-      refreshToken: tokens.refresh_token || null,
-      scope: tokens.scope || null,
-      expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null
-    },
-    create: {
-      userId: user.id, provider: 'google',
-      accessToken: tokens.access_token || '',
-      refreshToken: tokens.refresh_token || null,
-      scope: tokens.scope || null,
-      expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null
+  try {
+    if (!oauth2Client) {
+      return res.status(500).send('Google OAuth not configured');
     }
-  });
 
-  setUserSession(req, user);
-  res.redirect((process.env.CLIENT_URL || 'http://localhost:5173') + '/onboarding?oauth_success=true');
+    const { code } = req.query;
+    if (!code) {
+      return res.status(400).send('Authorization code missing');
+    }
+
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+
+    const { google } = require('googleapis');
+    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+    const { data } = await oauth2.userinfo.get();
+    const email = data.email;
+    const name = data.name || email;
+
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: { name },
+      create: { email, name }
+    });
+
+    await prisma.oAuthToken.upsert({
+      where: { userId_provider: { userId: user.id, provider: 'google' } },
+      update: {
+        accessToken: tokens.access_token || '',
+        refreshToken: tokens.refresh_token || null,
+        scope: tokens.scope || null,
+        expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null
+      },
+      create: {
+        userId: user.id, provider: 'google',
+        accessToken: tokens.access_token || '',
+        refreshToken: tokens.refresh_token || null,
+        scope: tokens.scope || null,
+        expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null
+      }
+    });
+
+    setUserSession(req, user);
+    res.redirect((process.env.CLIENT_URL || 'http://localhost:5173') + '/?auth_success=true');
+    
+  } catch (error) {
+    console.error('Google OAuth callback error:', error);
+    res.status(500).send(`Authentication failed: ${error.message}`);
+  }
 });
 
-router.get('/profile', async (req, res) => {
+router.get('/user', async (req, res) => {
   if (!req.session?.user) return res.status(200).json({ user: null });
   const profile = await prisma.profile.findUnique({ where: { userId: req.session.user.id } });
   res.json({ user: req.session.user, profile });

@@ -36,7 +36,8 @@ export interface Connection {
   created_at?: string; // legacy
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+// Use the environment variable if set, otherwise use relative URL for proxy
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -56,42 +57,42 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
 }
 
 export async function getConnections(): Promise<Connection[]> {
-  return fetchApi<Connection[]>("/api/connections");
+  return fetchApi<Connection[]>("/connections");
 }
 
 export async function createConnection(data: Omit<Connection, 'id' | 'userId' | 'createdAt'>): Promise<Connection> {
-  return fetchApi<Connection>(`/api/connections`, {
+  return fetchApi<Connection>(`/connections`, {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
 export async function updateConnection(id: string, data: Partial<Connection>): Promise<Connection> {
-  return fetchApi<Connection>(`/api/connections/${id}`, {
+  return fetchApi<Connection>(`/connections/${id}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });
 }
 
 export async function transitionConnection(id: string, action: string, metadata?: any): Promise<Connection> {
-  return fetchApi<Connection>(`/api/connections/${id}/transition`, {
+  return fetchApi<Connection>(`/connections/${id}/transition`, {
     method: 'POST',
     body: JSON.stringify({ action, metadata }),
   });
 }
 
 export async function deleteConnection(id: string): Promise<{ ok: boolean }> {
-  return fetchApi<{ ok: boolean }>(`/api/connections/${id}`, {
+  return fetchApi<{ ok: boolean }>(`/connections/${id}`, {
     method: "DELETE",
   });
 }
 
 export async function getAnalytics() {
-  return fetchApi("/api/analytics/overview");
+  return fetchApi("/analytics/overview");
 }
 
 export async function getTimeline() {
-  return fetchApi("/api/timeline");
+  return fetchApi("/timeline");
 }
 
 export interface EmailDraft {
@@ -110,7 +111,7 @@ export interface GenerateEmailRequest {
 }
 
 export async function generateEmail(params: GenerateEmailRequest): Promise<EmailDraft> {
-  return fetchApi<EmailDraft>("/api/emails/generate", {
+  return fetchApi<EmailDraft>("/emails/generate", {
     method: "POST",
     body: JSON.stringify(params),
   });
@@ -120,7 +121,7 @@ export async function sendEmail(draftId: string): Promise<{ ok: boolean; gmailMe
   // Generate idempotency key to prevent duplicate sends
   const idempotencyKey = `send_${draftId}_${Date.now()}`;
   
-  return fetchApi("/api/emails/send", {
+  return fetchApi("/emails/send", {
     method: "POST",
     headers: {
       'x-idempotency-key': idempotencyKey
@@ -158,7 +159,7 @@ export interface BatchGenerateResponse {
 }
 
 export async function batchGenerateEmails(params: BatchGenerateRequest): Promise<BatchGenerateResponse> {
-  return fetchApi<BatchGenerateResponse>("/api/emails/batch-generate", {
+  return fetchApi<BatchGenerateResponse>("/emails/batch-generate", {
     method: "POST",
     body: JSON.stringify(params),
   });
@@ -186,24 +187,24 @@ export async function getDrafts(status?: string, connectionId?: string): Promise
   if (status) params.append('status', status);
   if (connectionId) params.append('connectionId', connectionId);
   
-  return fetchApi<Draft[]>(`/api/emails/drafts${params.toString() ? '?' + params.toString() : ''}`);
+  return fetchApi<Draft[]>(`/emails/drafts${params.toString() ? '?' + params.toString() : ''}`);
 }
 
 export async function updateDraft(draftId: string, subject: string, body: string): Promise<Draft> {
-  return fetchApi<Draft>(`/api/emails/drafts/${draftId}`, {
+  return fetchApi<Draft>(`/emails/drafts/${draftId}`, {
     method: "PUT",
     body: JSON.stringify({ subject, body }),
   });
 }
 
 export async function deleteDraft(draftId: string): Promise<{ success: boolean }> {
-  return fetchApi(`/api/emails/drafts/${draftId}`, {
+  return fetchApi(`/emails/drafts/${draftId}`, {
     method: "DELETE",
   });
 }
 
 export async function deleteAllDraftsForConnection(connectionId: string): Promise<{ success: boolean; deletedCount: number }> {
-  return fetchApi(`/api/emails/drafts/connection/${connectionId}`, {
+  return fetchApi(`/emails/drafts/connection/${connectionId}`, {
     method: "DELETE",
   });
 }

@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { requireAuth } = require('../middleware/auth');
 const { prisma } = require('../db/prisma');
-const { ALLOWED, isValidTransition, applyTransition } = require('../services/flow');
+const { ALLOWED, isValidTransition, applyTransition, computeNextAction } = require('../services/flow');
 const { validateStateMachine, ensureNextActionConsistency, logStateTransitions } = require('../middleware/stateMachineValidation');
 const { optimisticLocking, checkConnectionVersion, withVersionIncrement, idempotencyMiddleware } = require('../middleware/concurrency');
 

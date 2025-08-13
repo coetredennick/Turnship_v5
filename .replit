@@ -1,0 +1,21 @@
+modules = ["nodejs-20", "web", "postgresql-16"]
+run = "npm run setup && npm run start"
+
+[nix]
+channel = "stable-25_05"
+
+[deployment]
+run = ["sh", "-c", "npm run start"]
+
+[[ports]]
+localPort = 3001
+externalPort = 80
+
+[[ports]]
+localPort = 5173
+externalPort = 5173
+
+[env]
+NODE_ENV = "development"
+REPL_OWNER = "{{REPL_OWNER}}"
+REPL_SLUG = "{{REPL_SLUG}}"

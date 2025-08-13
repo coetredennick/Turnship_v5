@@ -1,10 +1,19 @@
 const { OpenAI } = require('openai');
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Only initialize OpenAI if API key is provided
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 /**
  * Generate a contextual email draft using student & connection context.
  */
 async function generateDraft({ student, connection, purpose = 'informational-interview', tone = 'Warm', length = 'Short', stage = 'Not Contacted', previousEmail = null }) {
+  if (!openai) {
+    throw new Error('OpenAI API key not configured. Please add OPENAI_API_KEY to your environment variables.');
+  }
+  
   const system = [
     "You are a helpful assistant that writes authentic, concise networking emails for college students.",
     "Keep it 110-150 words for first outreach. One specific CTA. No false claims.",

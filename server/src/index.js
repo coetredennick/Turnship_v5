@@ -8,7 +8,33 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
-app.use(cors({ origin: CLIENT_URL, credentials: true }));
+// Configure CORS for Replit
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+    
+    // In production on Replit, allow the Replit domain
+    if (process.env.REPL_OWNER && process.env.REPL_SLUG) {
+      const allowedOrigins = [
+        CLIENT_URL,
+        `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
+        `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co:3000`
+      ];
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Allow all origins in Replit for now
+      }
+    } else {
+      // Local development
+      callback(null, true);
+    }
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dev-secret-not-secure',
@@ -21,22 +47,7 @@ app.use(session({
   }
 }));
 
-// DEV: Bypass auth by setting a mock user session
-if (process.env.NODE_ENV === "development") {
-  app.use((req, res, next) => {
-    if (!req.session) {
-      req.session = {};
-    }
-    if (!req.session.user) {
-      req.session.user = {
-        id: "dev-user-1",
-        email: "dev@example.com",
-        name: "Dev User"
-      };
-    }
-    next();
-  });
-}
+// Note: Using ReplitAuth for authentication - no dev bypass needed
 // Health
 app.get('/health', async (req, res) => {
   try {
@@ -57,6 +68,7 @@ app.use('/followups', require('./routes/followups'));
 app.use('/analytics', require('./routes/analytics'));
 
 // ---- API aliases expected by the design client ----
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/connections', require('./routes/connections'));
 app.use('/api/emails', require('./routes/emails'));
 app.use('/api/followups', require('./routes/followups'));
@@ -78,5 +90,22 @@ app.get('/api/user', async (req, res) => {
 // Use enhanced analytics endpoint
 app.use('/api/analytics', require('./routes/analytics'));
 // ---- end API aliases ----
+
+// Serve static files from the React app build
+const path = require('path');
+const clientBuildPath = path.join(__dirname, '../../client/dist');
+
+// Serve static files
+app.use(express.static(clientBuildPath));
+
+// Catch all handler for React Router
+app.get('*', (req, res) => {
+  // Don't serve index.html for API routes
+  if (req.path.startsWith('/api/') || req.path.startsWith('/auth/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
 
 app.listen(PORT, () => console.log(`API on http://localhost:${PORT}`));
