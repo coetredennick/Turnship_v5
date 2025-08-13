@@ -31,7 +31,7 @@ router.get('/google', (req, res) => {
   
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/gmail.send']
+    scope: ['openid', 'email', 'profile']
   });
   res.redirect(url);
 });
