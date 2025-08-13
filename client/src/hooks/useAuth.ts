@@ -21,7 +21,7 @@ export function useAuth() {
   useEffect(() => {
     const fetchAuth = async () => {
       try {
-        const response = await fetch(`${API_BASE}/user`, {
+        const response = await fetch(`${API_BASE}/auth/user`, {
           credentials: 'include'
         });
         

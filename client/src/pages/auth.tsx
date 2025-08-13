@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,6 +6,15 @@ import { Mail, Loader2, Shield, Zap, Users } from 'lucide-react';
 
 export function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
+  
+  useEffect(() => {
+    // Check if we're returning from OAuth with success
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('auth_success') === 'true') {
+      // Redirect to dashboard after successful auth
+      window.location.href = '/';
+    }
+  }, []);
   
   const handleGoogleAuth = () => {
     setIsLoading(true);
