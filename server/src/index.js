@@ -4,6 +4,17 @@ const session = require('express-session');
 const cors = require('cors');
 const { prisma } = require('./db/prisma');
 
+// PostgreSQL session store for production
+let PgSession;
+if (process.env.NODE_ENV === 'production') {
+  try {
+    PgSession = require('connect-pg-simple')(session);
+    console.log('✅ PostgreSQL session store configured');
+  } catch (error) {
+    console.warn('PostgreSQL session store not available:', error.message);
+  }
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
@@ -36,7 +47,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(session({
+
+// Session configuration with Redis store for production
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'dev-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
@@ -46,7 +59,20 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: 'lax' // Allow cross-site requests for OAuth
   }
-}));
+};
+
+// Use PostgreSQL store in production if available
+if (process.env.NODE_ENV === 'production' && PgSession) {
+  sessionConfig.store = new PgSession({
+    conString: process.env.DATABASE_URL,
+    tableName: 'session'
+  });
+  console.log('✅ Using PostgreSQL session store');
+} else {
+  console.log('⚠️  Using MemoryStore (not recommended for production)');
+}
+
+app.use(session(sessionConfig));
 
 // Note: Using ReplitAuth for authentication - no dev bypass needed
 // Health

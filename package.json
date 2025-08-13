@@ -16,7 +16,10 @@
     "axios": "^1.11.0",
     "colors": "^1.4.0",
     "concurrently": "^8.2.2",
+    "connect-pg-simple": "^10.0.0",
+    "connect-redis": "^9.0.0",
     "dotenv": "^16.4.5",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "redis": "^5.8.1"
   }
 }
