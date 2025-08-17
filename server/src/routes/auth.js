@@ -95,10 +95,25 @@ router.get('/google/callback', async (req, res) => {
 });
 
 router.get('/user', async (req, res) => {
-  console.log('🔍 Checking user session:', req.session?.user ? 'exists' : 'missing');
-  if (!req.session?.user) return res.status(200).json({ user: null });
-  const profile = await prisma.profile.findUnique({ where: { userId: req.session.user.id } });
-  res.json({ user: req.session.user, profile });
+  try {
+    console.log('🔍 Checking user session:', req.session?.user ? 'exists' : 'missing');
+    console.log('🔍 Session ID:', req.sessionID);
+    console.log('🔍 Session data:', req.session);
+    
+    if (!req.session?.user) {
+      return res.status(200).json({ user: null });
+    }
+    
+    const profile = await prisma.profile.findUnique({ 
+      where: { userId: req.session.user.id } 
+    });
+    
+    console.log('✅ Returning user:', req.session.user);
+    res.json({ user: req.session.user, profile });
+  } catch (error) {
+    console.error('❌ Error in /auth/user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Development-only auth route
