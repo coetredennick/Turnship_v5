@@ -109,55 +109,20 @@ router.post('/import', requireAuth, async (req, res) => {
   res.json({ inserted });
 });
 
-// Manual stage progression (DEPRECATED - Use /transition endpoint instead)
+// Replace the entire POST /:id/advance-stage route with:
 router.post('/:id/advance-stage', requireAuth, async (req, res) => {
-  console.warn('DEPRECATED: /advance-stage endpoint used. Migrate to /transition endpoint.');
-  
-  // Add deprecation header
-  res.set('X-Deprecated-Endpoint', 'true');
-  res.set('X-Deprecated-Message', 'Use POST /api/connections/:id/transition instead');
-  res.set('X-Deprecated-Migration-Guide', 'https://docs.yourapp.com/migration/state-machine');
-  const userId = req.session.user.id;
-  const id = req.params.id;
-  const existing = await prisma.connection.findUnique({ where: { id } });
-  if (!existing || existing.userId !== userId) return res.status(404).json({ error: 'Not found' });
-  
-  // Determine next stage based on current stage
-  let nextStage;
-  switch (existing.stage) {
-    case 'Not Contacted':
-      nextStage = 'First Outreach';
-      break;
-    case 'First Outreach':
-      nextStage = 'Second Outreach';
-      break;
-    case 'Second Outreach':
-      nextStage = 'Third Outreach';
-      break;
-    case 'Third Outreach':
-      nextStage = 'Third Outreach'; // Stay in same stage
-      break;
-    default:
-      return res.status(400).json({ error: 'Cannot advance from current stage' });
-  }
-
-  const updated = await prisma.connection.update({ 
-    where: { id }, 
-    data: { stage: nextStage, lastContactedAt: new Date() } 
-  });
-
-  // Create timeline event for manual stage advancement
-  await prisma.timelineEvent.create({
-    data: {
-      userId,
-      connectionId: id,
-      kind: 'stage_advanced',
-      title: `Stage advanced to ${nextStage}`,
-      details: { previousStage: existing.stage, newStage: nextStage, manual: true }
+  res.status(410).json({ 
+    error: 'This endpoint has been removed. Use the state machine transition endpoint instead.',
+    use: 'POST /api/connections/:id/transition',
+    documentation: 'https://docs.yourapp.com/migration/state-machine',
+    example: {
+      endpoint: 'POST /api/connections/:id/transition',
+      body: {
+        action: 'START_DRAFTING',
+        metadata: {}
+      }
     }
   });
-
-  res.json(updated);
 });
 
 // Get connections with due follow-ups

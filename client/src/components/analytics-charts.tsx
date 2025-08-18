@@ -38,29 +38,30 @@ export function EmailActivityChart() {
   );
 }
 
-interface StageFunnelChartProps {
+interface StateFunnelChartProps {
   analytics?: AnalyticsData | null;
   loading?: boolean;
 }
 
-export function StageFunnelChart({ analytics, loading }: StageFunnelChartProps) {
-  // Create stage data from analytics
-  const stageData = analytics?.stageFunnel ? Object.entries(analytics.stageFunnel).map(([stage, count]) => ({
-    stage,
+export function StateFunnelChart({ analytics, loading }: StateFunnelChartProps) {
+  // Create state data from analytics
+  const stateData = analytics?.stateFunnel ? Object.entries(analytics.stateFunnel).map(([state, count]) => ({
+    state,
     count,
-    percentage: Math.round((count / Math.max(...Object.values(analytics.stageFunnel))) * 100)
+    percentage: Math.round((count / Math.max(...Object.values(analytics.stateFunnel))) * 100)
   })) : [
-    { stage: "New", count: 0, percentage: 0 },
-    { stage: "Contacted", count: 0, percentage: 0 },
-    { stage: "Interested", count: 0, percentage: 0 },
-    { stage: "Responded", count: 0, percentage: 0 },
-    { stage: "Scheduled", count: 0, percentage: 0 }
+    { state: "NOT_CONTACTED", count: 0, percentage: 0 },
+    { state: "DRAFTING", count: 0, percentage: 0 },
+    { state: "SENT", count: 0, percentage: 0 },
+    { state: "AWAITING_REPLY", count: 0, percentage: 0 },
+    { state: "REPLIED", count: 0, percentage: 0 },
+    { state: "CLOSED", count: 0, percentage: 0 }
   ];
 
   if (loading) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Connection Stage Funnel</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">Connection State Funnel</h3>
         <div className="space-y-4">
           <div className="animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -77,22 +78,22 @@ export function StageFunnelChart({ analytics, loading }: StageFunnelChartProps) 
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">Connection Stage Funnel</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-6">Connection State Funnel</h3>
       <div className="space-y-4">
-        {stageData.map((stage, index) => (
-          <div key={stage.stage} className="flex items-center justify-between">
-            <span className="text-sm text-gray-600 capitalize">{stage.stage}</span>
+        {stateData.map((state, index) => (
+          <div key={state.state} className="flex items-center justify-between">
+            <span className="text-sm text-gray-600 capitalize">{state.state.toLowerCase().replace(/_/g, ' ')}</span>
             <div className="flex items-center space-x-3">
               <div className="w-32 bg-gray-200 rounded-full h-2">
                 <div 
                   className="h-2 rounded-full" 
                   style={{ 
-                    width: `${stage.percentage}%`,
+                    width: `${state.percentage}%`,
                     backgroundColor: COLORS[index % COLORS.length] 
                   }}
                 />
               </div>
-              <span className="text-sm font-medium text-gray-900">{stage.count}</span>
+              <span className="text-sm font-medium text-gray-900">{state.count}</span>
             </div>
           </div>
         ))}

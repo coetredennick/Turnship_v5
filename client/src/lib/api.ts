@@ -15,9 +15,7 @@ export interface Connection {
   school?: string | null;
   gradYear?: number | null;
   grad_year?: number | null; // legacy support
-  stage: string; // legacy for UI
-  stageStatus?: string; // legacy status
-  currentDraftId?: string; // legacy
+  currentDraftId?: string;
   current_draft_id?: string; // legacy
   cycle: number;
   state: 'NOT_CONTACTED' | 'DRAFTING' | 'SENT' | 'AWAITING_REPLY' | 'REPLIED' | 'BOUNCED' | 'DO_NOT_CONTACT' | 'CLOSED';

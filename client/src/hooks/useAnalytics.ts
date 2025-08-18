@@ -22,7 +22,11 @@ export interface AnalyticsData {
   followupsOverdue: number;
   followupsOnTime: number;
   
-  // Breakdown data
+  // State-based breakdown (NEW - use these!)
+  stateFunnel: Record<string, number>;
+  stateBreakdown: Array<{ state: string; _count: { state: number } }>;
+  
+  // Legacy breakdown (keep for now, remove later)
   stageFunnel: Record<string, number>;
   stageBreakdown: Array<{ stage: string; _count: { stage: number } }>;
   

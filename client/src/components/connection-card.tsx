@@ -18,8 +18,8 @@ interface ConnectionCardProps {
   company: string;
   timeAgo?: string;
   isAlumni?: boolean;
-  stage?: string;
-  stageStatus?: "ready" | "draft_saved" | "waiting" | "completed";
+  state?: string;
+  currentDraftId?: string;
   lastContactedAt?: string;
   onAction?: (action: string, connectionId: string) => void;
   onClick?: () => void;
@@ -32,80 +32,81 @@ export default function ConnectionCard({
   company,
   timeAgo,
   isAlumni,
-  stage = "Not Contacted",
-  stageStatus = "ready",
+  state = "NOT_CONTACTED",
+  currentDraftId,
   lastContactedAt,
   onAction,
   onClick
 }: ConnectionCardProps) {
   const initials = name.split(" ").map(n => n[0]).join("").toUpperCase();
   
-  // Stage status indicator configuration
+  // State-based status indicator configuration
   const statusIndicators = {
-    ready: { 
+    NOT_CONTACTED: { 
       icon: <AlertCircle className="w-3 h-3" />, 
-      color: "bg-green-500", 
-      tooltip: "Ready to proceed" 
+      color: "bg-gray-400", 
+      tooltip: "Not contacted" 
     },
-    draft_saved: { 
+    DRAFTING: { 
       icon: <Edit3 className="w-3 h-3" />, 
       color: "bg-yellow-500", 
-      tooltip: "Draft saved" 
+      tooltip: "Drafting email" 
     },
-    waiting: { 
+    SENT: { 
+      icon: <Send className="w-3 h-3" />, 
+      color: "bg-blue-500", 
+      tooltip: "Email sent" 
+    },
+    AWAITING_REPLY: { 
       icon: <Clock className="w-3 h-3" />, 
       color: "bg-blue-500", 
       tooltip: "Awaiting reply" 
     },
-    completed: { 
+    REPLIED: {
+      icon: <MessageCircle className="w-3 h-3" />, 
+      color: "bg-green-500", 
+      tooltip: "Received reply" 
+    },
+    BOUNCED: {
+      icon: <AlertCircle className="w-3 h-3" />, 
+      color: "bg-red-500", 
+      tooltip: "Email bounced" 
+    },
+    DO_NOT_CONTACT: {
+      icon: <AlertCircle className="w-3 h-3" />, 
+      color: "bg-red-400", 
+      tooltip: "Do not contact" 
+    },
+    CLOSED: { 
       icon: <CheckCircle className="w-3 h-3" />, 
       color: "bg-gray-400", 
-      tooltip: "Stage complete" 
+      tooltip: "Closed" 
     }
   };
 
-  // Continuation button configuration based on stage and status
+  // Action button configuration based on state
   const getActionButton = () => {
     if (!id || !onAction) return null;
 
-    switch (stage) {
-      case "Not Contacted":
-        if (stageStatus === "ready") {
-          return (
-            <Button
-              size="sm"
-              variant="outline"
-              className="mt-3 w-full bg-teal-50 hover:bg-teal-100 text-teal-700 border-teal-300"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAction("generate", id);
-              }}
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              Generate First Email
-            </Button>
-          );
-        }
-        if (stageStatus === "draft_saved") {
-          return (
-            <Button
-              size="sm"
-              variant="outline"
-              className="mt-3 w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAction("review", id);
-              }}
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Review & Send
-            </Button>
-          );
-        }
-        break;
+    switch (state) {
+      case "NOT_CONTACTED":
+        return (
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-3 w-full bg-teal-50 hover:bg-teal-100 text-teal-700 border-teal-300"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAction("generate", id);
+            }}
+          >
+            <Mail className="w-4 h-4 mr-2" />
+            Generate Email
+          </Button>
+        );
       
-      case "First Outreach":
-        if (stageStatus === "draft_saved") {
+      case "DRAFTING":
+        if (currentDraftId) {
           return (
             <Button
               size="sm"
@@ -117,67 +118,63 @@ export default function ConnectionCard({
               }}
             >
               <Send className="w-4 h-4 mr-2" />
-              Send Email
+              Review & Send
             </Button>
           );
         }
         break;
       
-      case "Awaiting Reply":
-        if (stageStatus === 'sent' || stageStatus === 'waiting') {
-          const daysSinceContact = lastContactedAt 
-            ? Math.floor((Date.now() - new Date(lastContactedAt).getTime()) / (1000 * 60 * 60 * 24))
-            : 0;
-          
-          if (daysSinceContact >= 3) {
-            return (
-              <Button
-                size="sm"
-                variant="outline"
-                className="mt-3 w-full bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAction("followup", id);
-                }}
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Send Follow-up ({daysSinceContact}d)
-              </Button>
-            );
-          } else {
-            return (
-              <div className="mt-3 text-xs text-gray-500 text-center">
-                Follow-up available in {3 - daysSinceContact} days
-              </div>
-            );
-          }
-        }
-        break;
-      
-      case "Second Outreach":
-        if (stageStatus === "ready") {
+      case "AWAITING_REPLY":
+        const daysSinceContact = lastContactedAt 
+          ? Math.floor((Date.now() - new Date(lastContactedAt).getTime()) / (1000 * 60 * 60 * 24))
+          : 0;
+        
+        if (daysSinceContact >= 3) {
           return (
             <Button
               size="sm"
               variant="outline"
-              className="mt-3 w-full bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-300"
+              className="mt-3 w-full bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300"
               onClick={(e) => {
                 e.stopPropagation();
-                onAction("second_followup", id);
+                onAction("followup", id);
               }}
             >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Generate Follow-up
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Send Follow-up ({daysSinceContact}d)
             </Button>
           );
+        } else {
+          return (
+            <div className="mt-3 text-xs text-gray-500 text-center">
+              Follow-up available in {3 - daysSinceContact} days
+            </div>
+          );
         }
+        break;
+      
+      case "REPLIED":
+        return (
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-3 w-full bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAction("advance", id);
+            }}
+          >
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Next Cycle
+          </Button>
+        );
         break;
     }
     
     return null;
   };
 
-  const statusIndicator = statusIndicators[stageStatus] || statusIndicators.ready;
+  const statusIndicator = statusIndicators[state] || statusIndicators.NOT_CONTACTED;
 
   return (
     <div 
@@ -216,16 +213,16 @@ export default function ConnectionCard({
             )}
             
             <Badge variant="outline" className="text-xs">
-              {stage}
+              {state?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || 'Not Contacted'}
             </Badge>
             
-            {stageStatus === "draft_saved" && (
+            {state === "DRAFTING" && currentDraftId && (
               <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
                 Draft
               </Badge>
             )}
             
-            {(stageStatus === 'sent' || stageStatus === 'waiting') && lastContactedAt && (
+            {(state === 'SENT' || state === 'AWAITING_REPLY') && lastContactedAt && (
               <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
                 {Math.floor((Date.now() - new Date(lastContactedAt).getTime()) / (1000 * 60 * 60 * 24))}d ago
               </Badge>

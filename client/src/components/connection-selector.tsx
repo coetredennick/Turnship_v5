@@ -14,20 +14,29 @@ interface ConnectionSelectorProps {
 export default function ConnectionSelector({ selectedConnections, onSelectionChange }: ConnectionSelectorProps) {
   const { connections, loading } = useConnections();
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [stageFilter, setStageFilter] = React.useState("all");
+  const [stateFilter, setStateFilter] = React.useState("all");
 
-  const STAGES = [
-    "Not Contacted",
-    "First Outreach", 
-    "Second Outreach",
-    "Third Outreach"
+  const STATES = [
+    "NOT_CONTACTED",
+    "DRAFTING",
+    "SENT",
+    "AWAITING_REPLY",
+    "REPLIED",
+    "BOUNCED",
+    "DO_NOT_CONTACT",
+    "CLOSED"
   ];
 
-  const getStageColor = (stage: string) => {
-    switch (stage) {
-      case "First Outreach": return "bg-blue-500 text-white";
-      case "Second Outreach": return "bg-purple-500 text-white"; 
-      case "Third Outreach": return "bg-orange-500 text-white";
+  const getStateColor = (state: string) => {
+    switch (state) {
+      case "NOT_CONTACTED": return "bg-gray-500 text-white";
+      case "DRAFTING": return "bg-yellow-500 text-white";
+      case "SENT": return "bg-blue-500 text-white";
+      case "AWAITING_REPLY": return "bg-blue-600 text-white";
+      case "REPLIED": return "bg-green-500 text-white";
+      case "BOUNCED": return "bg-red-500 text-white";
+      case "DO_NOT_CONTACT": return "bg-red-400 text-white";
+      case "CLOSED": return "bg-gray-400 text-white";
       default: return "bg-gray-500 text-white";
     }
   };
@@ -38,9 +47,9 @@ export default function ConnectionSelector({ selectedConnections, onSelectionCha
       conn.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       conn.role?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesStage = stageFilter === "all" || conn.stage === stageFilter;
+    const matchesState = stateFilter === "all" || conn.state === stateFilter;
     
-    return matchesSearch && matchesStage;
+    return matchesSearch && matchesState;
   });
 
   const handleConnectionToggle = (connectionId: string, checked: boolean) => {
@@ -94,14 +103,14 @@ export default function ConnectionSelector({ selectedConnections, onSelectionCha
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1"
           />
-          <Select value={stageFilter} onValueChange={setStageFilter}>
+          <Select value={stateFilter} onValueChange={setStateFilter}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="All Stages" />
+              <SelectValue placeholder="All States" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Stages</SelectItem>
-              {STAGES.map(stage => (
-                <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+              <SelectItem value="all">All States</SelectItem>
+              {STATES.map(state => (
+                <SelectItem key={state} value={state}>{state.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -151,8 +160,8 @@ export default function ConnectionSelector({ selectedConnections, onSelectionCha
                 </div>
               </div>
               
-              <Badge className={getStageColor(connection.stage || "Not Contacted")}>
-                {connection.stage || "Not Contacted"}
+              <Badge className={getStateColor(connection.state || "NOT_CONTACTED")}>
+                {connection.state?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || 'Not Contacted'}
               </Badge>
             </div>
           ))}

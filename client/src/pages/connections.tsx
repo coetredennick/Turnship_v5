@@ -27,7 +27,7 @@ export default function Connections() {
   const [viewMode, setViewMode] = useState<"table" | "alumni">("table");
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [stageFilter, setStageFilter] = useState("all");
+  const [stateFilter, setStateFilter] = useState("all");
   const [companyFilter, setCompanyFilter] = useState("all");
   const [expandedConnection, setExpandedConnection] = useState<string | null>(null);
   const [draftBankConnection, setDraftBankConnection] = useState<Connection | null>(null);
@@ -38,11 +38,16 @@ export default function Connections() {
   // Fetch connections from API
   const { connections, loading: isLoading, error, refetch: refetchConnections } = useConnections();
 
-  // Simplified 3-stage system
-  const STAGES = [
-    "Not Started",
-    "Contacted",
-    "Responded"
+  // State-based system
+  const STATES = [
+    "NOT_CONTACTED",
+    "DRAFTING",
+    "SENT",
+    "AWAITING_REPLY",
+    "REPLIED",
+    "BOUNCED",
+    "DO_NOT_CONTACT",
+    "CLOSED"
   ];
 
   // Filter connections based on search and filters
@@ -52,10 +57,10 @@ export default function Connections() {
       conn.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       conn.role?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesStage = stageFilter === "all" || conn.stage === stageFilter;
+    const matchesState = stateFilter === "all" || conn.state === stateFilter;
     const matchesCompany = companyFilter === "all" || conn.company === companyFilter;
     
-    return matchesSearch && matchesStage && matchesCompany;
+    return matchesSearch && matchesState && matchesCompany;
   });
 
   // Get alumni connections

@@ -1,5 +1,5 @@
 import StatsCard from "@/components/stats-card";
-import { EmailActivityChart, StageFunnelChart, PerformanceInsights } from "@/components/analytics-charts";
+import { EmailActivityChart, StateFunnelChart, PerformanceInsights } from "@/components/analytics-charts";
 import { Mail, CheckCircle, Clock, Timer, Users } from "lucide-react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
@@ -63,7 +63,7 @@ export default function Analytics() {
           <EmailActivityChart />
         </div>
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-soft-lg border border-border/50">
-          <StageFunnelChart analytics={analytics} loading={loading} />
+          <StateFunnelChart analytics={analytics} loading={loading} />
         </div>
       </div>
 

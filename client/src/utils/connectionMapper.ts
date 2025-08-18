@@ -10,8 +10,7 @@ export interface DisplayConnection {
   alumni?: boolean;
   school?: string;
   grad_year?: number;
-  stage?: string;
-  stageStatus?: "ready" | "draft_saved" | "waiting" | "completed";
+  state?: string;
   currentDraftId?: string;
   lastContactedAt?: string;
   lastReplyAt?: string;
@@ -42,17 +41,25 @@ export function mapConnectionToDisplayConnection(connection: Connection): Displa
     return `${Math.floor(diffDays / 30)}mo`;
   };
 
-  // Map stage to status
-  const getStatus = (stage: string): DisplayConnection["status"] => {
-    switch (stage?.toLowerCase()) {
-      case "not contacted":
+  // Map state to status
+  const getStatus = (state: string): DisplayConnection["status"] => {
+    switch (state) {
+      case "NOT_CONTACTED":
         return undefined;
-      case "first outreach":
+      case "DRAFTING":
+        return undefined;
+      case "SENT":
         return "sent";
-      case "second outreach":
+      case "AWAITING_REPLY":
+        return "sent";
+      case "REPLIED":
         return "replied";
-      case "third outreach":
+      case "BOUNCED":
         return "due";
+      case "DO_NOT_CONTACT":
+        return undefined;
+      case "CLOSED":
+        return undefined;
       default:
         return undefined;
     }
@@ -68,18 +75,58 @@ export function mapConnectionToDisplayConnection(connection: Connection): Displa
     alumni: connection.alumni,
     school: connection.school,
     grad_year: connection.gradYear || connection.grad_year,
-    stage: connection.stage || "Not Contacted",
-    stageStatus: connection.stageStatus || connection.stage_status || "ready",
+    state: connection.state || "NOT_CONTACTED",
     currentDraftId: connection.currentDraftId || connection.current_draft_id,
     lastContactedAt: connection.lastContactedAt || connection.last_contacted_at,
     lastReplyAt: connection.lastReplyAt || connection.last_reply_at,
     replySentiment: connection.replySentiment || connection.reply_sentiment,
     timeAgo: getTimeAgo(connection.lastContactedAt || connection.last_contacted_at || connection.createdAt || connection.created_at),
-    status: getStatus(connection.stage),
+    status: getStatus(connection.state || "NOT_CONTACTED"),
   };
 }
 
+export function groupConnectionsByState(connections: Connection[]): Record<string, DisplayConnection[]> {
+  const groups: Record<string, DisplayConnection[]> = {
+    "NOT_CONTACTED": [],
+    "DRAFTING": [],
+    "SENT": [],
+    "AWAITING_REPLY": [],
+    "REPLIED": [],
+    "BOUNCED": [],
+    "DO_NOT_CONTACT": [],
+    "CLOSED": []
+  };
+
+  connections.forEach(connection => {
+    const displayConnection = mapConnectionToDisplayConnection(connection);
+    const state = connection.state || "NOT_CONTACTED";
+    
+    if (groups[state]) {
+      groups[state].push(displayConnection);
+    } else {
+      groups["NOT_CONTACTED"].push(displayConnection);
+    }
+  });
+
+  return groups;
+}
+
+// Keep the old function for backward compatibility during migration
 export function groupConnectionsByStage(connections: Connection[]): Record<string, DisplayConnection[]> {
+  console.warn('groupConnectionsByStage is deprecated. Use groupConnectionsByState instead.');
+  
+  // Map state to legacy stage for backward compatibility
+  const stateToStage: Record<string, string> = {
+    "NOT_CONTACTED": "Not Contacted",
+    "DRAFTING": "First Outreach",
+    "SENT": "First Outreach",
+    "AWAITING_REPLY": "First Outreach",
+    "REPLIED": "Second Outreach",
+    "BOUNCED": "Third Outreach",
+    "DO_NOT_CONTACT": "Third Outreach",
+    "CLOSED": "Third Outreach"
+  };
+  
   const groups: Record<string, DisplayConnection[]> = {
     "Not Contacted": [],
     "First Outreach": [],
@@ -89,13 +136,11 @@ export function groupConnectionsByStage(connections: Connection[]): Record<strin
 
   connections.forEach(connection => {
     const displayConnection = mapConnectionToDisplayConnection(connection);
-    const stage = connection.stage || "Not Contacted";
+    const state = connection.state || "NOT_CONTACTED";
+    const stage = stateToStage[state] || "Not Contacted";
     
     if (groups[stage]) {
       groups[stage].push(displayConnection);
-    } else {
-      // Default to Not Contacted if stage doesn't match known stages
-      groups["Not Contacted"].push(displayConnection);
     }
   });
 

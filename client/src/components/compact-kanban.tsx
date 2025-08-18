@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useConnections } from "@/hooks/useConnections";
-import { groupConnectionsByStage, type DisplayConnection } from "@/utils/connectionMapper";
+import { groupConnectionsByState, type DisplayConnection } from "@/utils/connectionMapper";
 
 interface CompactKanbanProps {
   selectedConnections: string[];
@@ -19,14 +19,18 @@ function CompactConnectionCard({
 }) {
   const initials = connection.name?.split(" ").map(n => n[0]).join("").toUpperCase() || "?";
   
-  // Status indicator colors
+  // Status indicator colors based on state
   const getStatusColor = () => {
-    switch (connection.stageStatus) {
-      case 'ready': return 'bg-green-500';
-      case 'draft_saved': return 'bg-yellow-500';
-      case 'waiting': return 'bg-blue-500';
-      case 'completed': return 'bg-gray-400';
-      default: return 'bg-green-500';
+    switch (connection.state) {
+      case 'NOT_CONTACTED': return 'bg-gray-400';
+      case 'DRAFTING': return 'bg-yellow-500';
+      case 'SENT': return 'bg-blue-500';
+      case 'AWAITING_REPLY': return 'bg-blue-500';
+      case 'REPLIED': return 'bg-green-500';
+      case 'BOUNCED': return 'bg-red-500';
+      case 'DO_NOT_CONTACT': return 'bg-red-400';
+      case 'CLOSED': return 'bg-gray-400';
+      default: return 'bg-gray-400';
     }
   };
 
@@ -52,7 +56,7 @@ function CompactConnectionCard({
           <span className="text-xs font-medium text-gray-700">{initials}</span>
         </div>
         <h4 className="font-medium text-xs text-gray-900 truncate w-full">{connection.name}</h4>
-        {connection.stageStatus === 'draft_saved' && (
+        {connection.state === 'DRAFTING' && connection.currentDraftId && (
           <span className="text-[10px] text-yellow-600 font-medium">DRAFT</span>
         )}
       </div>
@@ -140,22 +144,38 @@ export default function CompactKanban({ selectedConnections, onSelectionChange }
     );
   }
 
-  const groupedConnections = groupConnectionsByStage(connections);
+  const groupedConnections = groupConnectionsByState(connections);
   
-  // Simplified 4-stage system - only show columns that have connections
-  const stageOrder = [
-    "Not Contacted",
-    "First Outreach",
-    "Second Outreach",
-    "Third Outreach"
+  // State-based system - show columns that have connections
+  const stateOrder = [
+    "NOT_CONTACTED",
+    "DRAFTING",
+    "SENT",
+    "AWAITING_REPLY",
+    "REPLIED",
+    "BOUNCED",
+    "DO_NOT_CONTACT",
+    "CLOSED"
   ];
 
-  const columns = stageOrder
-    .filter(stage => groupedConnections[stage] && groupedConnections[stage].length > 0)
-    .map(stage => ({
-      title: stage,
-      count: groupedConnections[stage].length,
-      connections: groupedConnections[stage]
+  // Map state names to display names
+  const stateDisplayNames: Record<string, string> = {
+    "NOT_CONTACTED": "Not Contacted",
+    "DRAFTING": "Drafting",
+    "SENT": "Sent",
+    "AWAITING_REPLY": "Awaiting Reply",
+    "REPLIED": "Replied",
+    "BOUNCED": "Bounced",
+    "DO_NOT_CONTACT": "Do Not Contact",
+    "CLOSED": "Closed"
+  };
+
+  const columns = stateOrder
+    .filter(state => groupedConnections[state] && groupedConnections[state].length > 0)
+    .map(state => ({
+      title: stateDisplayNames[state] || state,
+      count: groupedConnections[state].length,
+      connections: groupedConnections[state]
     }));
 
   return (

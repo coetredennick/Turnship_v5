@@ -7,7 +7,7 @@ export interface Contact {
   email: string;
   role: string;
   company: string;
-  stage: string;
+  state: string;
   lastContactedAt?: string;
   isAlumni: boolean;
   tags: string[];
@@ -37,7 +37,7 @@ export const mockContacts: Contact[] = [
     email: "sarah.chen@microsoft.com",
     role: "Product Manager",
     company: "Microsoft",
-    stage: "First Outreach",
+    state: "AWAITING_REPLY",
     lastContactedAt: "2 hours ago",
     isAlumni: true,
     tags: ["Alumni", "Product Management"]
@@ -48,7 +48,7 @@ export const mockContacts: Contact[] = [
     email: "david.kim@google.com",
     role: "Data Scientist",
     company: "Google",
-    stage: "Second Outreach",
+    state: "REPLIED",
     lastContactedAt: "3 days ago",
     isAlumni: false,
     tags: ["Data Science"]
@@ -59,7 +59,7 @@ export const mockContacts: Contact[] = [
     email: "alex.rodriguez@tesla.com",
     role: "Engineering Manager",
     company: "Tesla",
-    stage: "Follow-up Due",
+    state: "AWAITING_REPLY",
     lastContactedAt: "5 days ago",
     isAlumni: false,
     tags: ["Engineering"]
